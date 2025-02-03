@@ -1,4 +1,4 @@
-import { Canvas } from "./canvas.ts";
+import { Canvas } from "./Canvas";
 import "./style.css";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = new Canvas(canvasContainer);
     document.addEventListener("mousemove", (e) => {
       canvas.mouseMoved(e.clientX, e.clientY);
+    });
+    window.addEventListener("resize", () => {
+      canvas.onResize();
     });
   } else {
     console.error("not found #canvas-container");

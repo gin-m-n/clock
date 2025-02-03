@@ -1,20 +1,32 @@
 import {
-  BoxGeometry,
-  BufferGeometry,
-  HemisphereLight,
   Light,
-  Line,
-  LineBasicMaterial,
-  Mesh,
-  MeshLambertMaterial,
   PerspectiveCamera,
+  PointLight,
   Scene,
   Vector2,
   Vector3,
   WebGLRenderer,
 } from "three";
-import { calcCameraDistance, hhmmss } from "./utils";
 import { SegmentCharactor, SegmentNumbers } from "./Segument";
+import { TileManager } from "./Background";
+import { MeshUtils } from "./MeshUtils";
+import { calcCameraDistance } from "./cameraUtils";
+
+export const hhmmss = (date: Date) => {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
+
+  const hh = (hours < 10 ? `0${hours}` : hours.toString()) as `${number}`;
+  const mm = (minutes < 10 ? `0${minutes}` : minutes.toString()) as `${number}`;
+  const ss = (seconds < 10 ? `0${seconds}` : seconds.toString()) as `${number}`;
+
+  return {
+    hh,
+    mm,
+    ss,
+  };
+};
 
 export class Canvas {
   private readonly w: number;
@@ -26,7 +38,8 @@ export class Canvas {
   private readonly light: Light;
   private readonly mouse: Vector2 = new Vector2(0, 0);
   private readonly starts;
-  private starDistance = 500;
+  private readonly tileManager;
+  private starDistance = 420;
   private clockCharactor: {
     hh: SegmentNumbers | undefined;
     colon1: SegmentCharactor | undefined;
@@ -59,8 +72,8 @@ export class Canvas {
     this.camera = new PerspectiveCamera(fov, this.w / this.h, 1);
     this.camera.position.z = this.defaultCameraDistance;
 
-    this.light = new HemisphereLight(0xffffff, 1.0);
-    this.light.position.set(0, 100, 100);
+    this.light = new PointLight(0xffffff, 200000);
+    this.light.position.set(0, 100, 200);
     this.scene.add(this.light);
 
     this.starts = Array(30)
@@ -70,12 +83,26 @@ export class Canvas {
       this.scene.add(s);
     });
 
+    this.tileManager = new TileManager(new Vector3(0, 0, -1000), 200, 14, 30);
+    this.tileManager.addScene(this.scene);
+
     this.render();
   }
 
   mouseMoved(x: number, y: number) {
     this.mouse.x = x - this.w / 2;
-    this.mouse.y = -y + this.h / 2;
+    this.mouse.y = -(y - this.h / 2);
+  }
+
+  onResize() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(width, height);
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 
   private past = 0;
@@ -100,16 +127,17 @@ export class Canvas {
       star.position.z = Math.cos(t) * this.starDistance;
       star.position.x = Math.sin(t) * this.starDistance;
       star.position.y =
-        Math.sin(t) * this.starDistance * Math.sin(sec / 3) * 0.2;
+        50 + Math.sin(t + Math.PI * (3 / 2)) * 0.4 * this.starDistance;
 
       const tan2Theta = Math.atan2(star.position.z, star.position.x);
       if (tan2Theta >= 0) {
-        const o = Math.abs(Math.cos(tan2Theta)) * 0.1;
-        star.material.opacity = o;
+        star.material.opacity = Math.abs(Math.cos(tan2Theta));
       } else {
         star.material.opacity = 1;
       }
     });
+
+    this.tileManager.wave(sec);
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -149,37 +177,5 @@ export class Canvas {
       s.addScene(this.scene);
       this.clockCharactor.ss = s;
     }
-  }
-}
-
-class MeshUtils {
-  static genCenterLine() {
-    const mat = new LineBasicMaterial();
-    const genLine = (vectors: Vector3[]) => {
-      const geo = new BufferGeometry().setFromPoints(vectors);
-      return new Line(geo, mat);
-    };
-
-    return [
-      genLine([new Vector3(400, 0, 0), new Vector3(-400, 0, 0)]),
-      genLine([new Vector3(0, 400, 0), new Vector3(0, -400, 0)]),
-    ];
-  }
-
-  static genGround() {
-    const mat = new MeshLambertMaterial();
-    const geo = new BoxGeometry(600, 600, 50);
-    const mesh = new Mesh(geo, mat);
-    mesh.rotateX(Math.PI / 2);
-    mesh.position.y = -170;
-    return mesh;
-  }
-
-  static genStar() {
-    const mat = new MeshLambertMaterial({ color: 0x4169e1 });
-    mat.transparent = true;
-    const geo = new BoxGeometry(10, 100, 10);
-    const mesh = new Mesh(geo, mat);
-    return mesh;
   }
 }
