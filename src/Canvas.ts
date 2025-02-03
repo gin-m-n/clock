@@ -76,7 +76,7 @@ export class Canvas {
     this.light.position.set(0, 100, 200);
     this.scene.add(this.light);
 
-    this.starts = Array(30)
+    this.starts = Array(60)
       .fill(0)
       .map(() => MeshUtils.genStar());
     this.starts.forEach((s) => {
@@ -89,7 +89,7 @@ export class Canvas {
     this.render();
   }
 
-  mouseMoved(x: number, y: number) {
+  onMouseMoved(x: number, y: number) {
     this.mouse.x = x - this.w / 2;
     this.mouse.y = -(y - this.h / 2);
   }
@@ -122,7 +122,7 @@ export class Canvas {
     this.clockCharactor.ss?.wave(sec + 4);
 
     this.starts.forEach((star, idx) => {
-      const t = ((2 * Math.PI) / this.starts.length) * idx + sec;
+      const t = ((2 * Math.PI) / this.starts.length) * idx + sec * 0.6;
 
       star.position.z = Math.cos(t) * this.starDistance;
       star.position.x = Math.sin(t) * this.starDistance;

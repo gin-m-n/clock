@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (canvasContainer) {
     const canvas = new Canvas(canvasContainer);
     document.addEventListener("mousemove", (e) => {
-      canvas.mouseMoved(e.clientX, e.clientY);
+      canvas.onMouseMoved(e.clientX, e.clientY);
     });
     window.addEventListener("resize", () => {
       canvas.onResize();
