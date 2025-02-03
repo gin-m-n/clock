@@ -25,6 +25,8 @@ export class Canvas {
   private readonly defaultCameraDistance: number;
   private readonly light: Light;
   private readonly mouse: Vector2 = new Vector2(0, 0);
+  private readonly starts;
+  private starDistance = 500;
   private clockCharactor: {
     hh: SegmentNumbers | undefined;
     colon1: SegmentCharactor | undefined;
@@ -58,11 +60,14 @@ export class Canvas {
     this.camera.position.z = this.defaultCameraDistance;
 
     this.light = new HemisphereLight(0xffffff, 1.0);
-    this.light.position.set(100, 300, 400);
+    this.light.position.set(0, 100, 100);
     this.scene.add(this.light);
 
-    MeshUtils.genCenterLine().forEach((line) => {
-      // this.scene.add(line);
+    this.starts = Array(30)
+      .fill(0)
+      .map(() => MeshUtils.genStar());
+    this.starts.forEach((s) => {
+      this.scene.add(s);
     });
 
     this.render();
@@ -83,12 +88,29 @@ export class Canvas {
       this.past = Math.round(sec);
     }
 
-    this.aroundPendulum();
     this.clockCharactor.hh?.wave(sec);
     this.clockCharactor.colon1?.wave(sec + 1);
     this.clockCharactor.mm?.wave(sec + 2);
     this.clockCharactor.colon2?.wave(sec + 3);
     this.clockCharactor.ss?.wave(sec + 4);
+
+    this.starts.forEach((star, idx) => {
+      const t = ((2 * Math.PI) / this.starts.length) * idx + sec;
+
+      star.position.z = Math.cos(t) * this.starDistance;
+      star.position.x = Math.sin(t) * this.starDistance;
+      star.position.y =
+        Math.sin(t) * this.starDistance * Math.sin(sec / 3) * 0.2;
+
+      const tan2Theta = Math.atan2(star.position.z, star.position.x);
+      if (tan2Theta >= 0) {
+        const o = Math.abs(Math.cos(tan2Theta)) * 0.1;
+        star.material.opacity = o;
+      } else {
+        star.material.opacity = 1;
+      }
+    });
+
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -128,22 +150,6 @@ export class Canvas {
       this.clockCharactor.ss = s;
     }
   }
-
-  private pendulumDirection = 1;
-  private aroundPendulum() {
-    const unitX = this.camera.position.x / this.defaultCameraDistance;
-    const unitZ = this.camera.position.z / this.defaultCameraDistance;
-    let theta = Math.atan2(unitX, unitZ);
-    if (Math.abs(theta) > Math.PI / 12) {
-      this.pendulumDirection *= -1;
-    }
-
-    theta += (this.pendulumDirection * Math.PI) / 180 / 48;
-
-    this.camera.position.z = Math.cos(theta) * this.defaultCameraDistance;
-    this.camera.position.x = Math.sin(theta) * this.defaultCameraDistance;
-    this.camera.lookAt(0, 0, 0);
-  }
 }
 
 class MeshUtils {
@@ -166,6 +172,14 @@ class MeshUtils {
     const mesh = new Mesh(geo, mat);
     mesh.rotateX(Math.PI / 2);
     mesh.position.y = -170;
+    return mesh;
+  }
+
+  static genStar() {
+    const mat = new MeshLambertMaterial({ color: 0x4169e1 });
+    mat.transparent = true;
+    const geo = new BoxGeometry(10, 100, 10);
+    const mesh = new Mesh(geo, mat);
     return mesh;
   }
 }
