@@ -47,12 +47,12 @@ export class Canvas {
     colon2: SegmentCharactor | undefined;
     ss: SegmentNumbers | undefined;
   } = {
-    hh: undefined,
-    colon1: undefined,
-    mm: undefined,
-    colon2: undefined,
-    ss: undefined,
-  };
+      hh: undefined,
+      colon1: undefined,
+      mm: undefined,
+      colon2: undefined,
+      ss: undefined,
+    };
 
   constructor(containerDom: Element) {
     this.w = window.innerWidth;
