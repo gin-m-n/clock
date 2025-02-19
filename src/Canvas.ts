@@ -12,6 +12,9 @@ import { TileManager } from "./Background";
 import { MeshUtils } from "./MeshUtils";
 import { calcCameraDistance } from "./cameraUtils";
 
+// @ts-ignore
+const capturer = new window.CCapture({ format: 'png' });
+
 export const hhmmss = (date: Date) => {
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -39,6 +42,7 @@ export class Canvas {
   private readonly mouse: Vector2 = new Vector2(0, 0);
   private readonly starts;
   private readonly tileManager;
+  private readonly canvas;
   private starDistance = 420;
   private clockCharactor: {
     hh: SegmentNumbers | undefined;
@@ -62,6 +66,7 @@ export class Canvas {
     this.renderer.setSize(this.w, this.h);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     containerDom.appendChild(this.renderer.domElement);
+    this.canvas = this.renderer.domElement
 
     this.scene = new Scene();
 
@@ -86,6 +91,11 @@ export class Canvas {
     this.tileManager = new TileManager(new Vector3(0, 0, -1000), 200, 14, 30);
     this.tileManager.addScene(this.scene);
 
+    capturer.start();
+    setTimeout(() => {
+      capturer.stop();
+      capturer.save();
+    }, 1000 * 10)
     this.render();
   }
 
@@ -138,8 +148,8 @@ export class Canvas {
     });
 
     this.tileManager.wave(sec);
-
     this.renderer.render(this.scene, this.camera);
+    capturer.capture(this.canvas);
   }
 
   private drawTime() {
