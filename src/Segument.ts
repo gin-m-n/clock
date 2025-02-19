@@ -6,7 +6,7 @@ type SegmentableCharactor = ":";
 const genBaseSegment = (size: number) => {
   const genBoxMesh = () => {
     const mat = new MeshLambertMaterial({ color: 0x005fff });
-    const geo = new BoxGeometry(size, size, 30);
+    const geo = new BoxGeometry(size, size, size);
     return new Mesh(geo, mat);
   };
   const boxes: Mesh[] = [];
